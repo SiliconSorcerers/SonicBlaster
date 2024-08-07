@@ -1,0 +1,1 @@
+This folder holds voice samples for the model to use.

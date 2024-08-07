@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run python main.py",
+            "type": "shell",
+            "presentation": {
+                "focus": true,
+                "panel": "shared"
+            },
+            "command": "python",
+            "args": ["main.py"],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
