@@ -1,4 +1,28 @@
 # Sonic Blaster
+SonicBlaster is a Text-to-Speech Discord bot. It uses advanced AI
+speech synthesis to deliver natural language sounding TTS.
+
+
+## Windows Dependencies
+### 1 PyTorch (Optionally with CUDA)
+
+Reference the Pytorch docs to get the latest pip command:
+
+https://pytorch.org/get-started/locally/
+
+At the time of writing this amounts to:
+
+`pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118`
+
+You may need the latest C++ build tools installed from Microsoft.
+
+### Coqui TTS
+
+Reference the Coqui TTS documentation. At the time of writing this amounts to:
+
+`pip install coqui-tts`
+
+
 ## Install
 ### 1. Setting up your .env file
 Copy the .env.sample file to .env or establish environment variables as it defines.
