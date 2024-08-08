@@ -173,7 +173,7 @@ def register_voice(username: str, voice: str) -> None:
         conn.execute("DELETE FROM voices WHERE username = ?", (username,))
 
         conn.execute(
-            "INSERT INTO voices (username, nickname) VALUES (?, ?)",
+            "INSERT INTO voices (username, voice) VALUES (?, ?)",
             (username, voice),
         )
 
