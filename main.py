@@ -51,6 +51,7 @@ client: Client = Client(intents=intents)
 voice_connections = {}
 nicknames = db.load_nicknames()
 voices = db.load_voices()
+voice_queues = {}
 
 
 # add our message parsing functionality
@@ -161,19 +162,41 @@ async def on_message(message: Message) -> None:
                 tts_text = f"{tts_name} sent a link"
 
             # create a TTS object
-            mp3_data = io.BytesIO()
+            audio_data = io.BytesIO()
             tts.tts_to_file(
                 text=tts_text,
                 speaker_wav=voice_to_use,
                 language="en",
-                file_path=mp3_data,
+                file_path=audio_data,
             )
 
             # rewind to the start of the file
-            mp3_data.seek(0)
+            audio_data.seek(0)
 
-            # play the mp3 file from memory
-            voice.play(discord.FFmpegPCMAudio(mp3_data, pipe=True))
+            if message.guild not in voice_queues:
+                voice_queues[message.guild] = []
+
+            # if already playing, add to the queue
+            if voice.is_playing():
+                voice_queues[message.guild].append(audio_data)
+            else:
+                # play the mp3 file from memory
+                voice.play(
+                    discord.FFmpegPCMAudio(audio_data, pipe=True),
+                    after=lambda e: play_queue(message.guild),
+                )
+
+
+def play_queue(guild):
+    print(f"Playing queue for {guild}")
+    if guild in voice_queues:
+        voice = voice_connections[guild]
+        if len(voice_queues[guild]) > 0:
+            audio_data = voice_queues[guild].pop(0)
+            voice.play(
+                discord.FFmpegPCMAudio(audio_data, pipe=True),
+                after=lambda e: play_queue(guild),
+            )
 
 
 def process_user_commands(message: Message, user_message: str) -> str:
