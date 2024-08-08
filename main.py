@@ -199,6 +199,17 @@ def play_queue(guild):
             )
 
 
+def list_voice_files() -> str:
+    files = []
+
+    # list each file in the voices directory
+    for file in os.listdir("voices"):
+        if not file.lower().endswith(".md"):
+            files.append(file)
+
+    return ", ".join(files)
+
+
 def process_user_commands(message: Message, user_message: str) -> str:
     lowered = user_message.lower()
 
@@ -239,14 +250,7 @@ def process_user_commands(message: Message, user_message: str) -> str:
 
             # verify the voice exists in the voices folder
             if not os.path.exists(f"voices/{voice}"):
-                response = f"Voice {voice} not found. The following are valid voices: "
-
-                # list each file in the voices directory
-                for file in os.listdir("voices"):
-                    response += f"{file}, "
-
-                # remove the last comma
-                response = response[:-2]
+                response = f"Voice {voice} not found. The following are valid voices:\n\n{list_voice_files()}"
 
             else:
 
@@ -256,18 +260,12 @@ def process_user_commands(message: Message, user_message: str) -> str:
 
                 response = f"Registered voice: {username} -> {voice}"
         else:
-            response = "Invalid syntax. Please use !voice <voice>. The following are valid voices: "
+            response = f"Invalid syntax. Please use !voice <voice>. The following are valid voices:\n\n{list_voice_files()}"
 
-            # list each file in the voices directory
-            for file in os.listdir("voices"):
-                if not file.lower().endswith(".md"):
-                    response += f"{file}, "
-
-            # remove the last comma
-            response = response[:-2]
-
-            if message.author.name in voices:
-                response += f".\n\nYour current voice is {voices[message.author.name]}."
+        if message.author.name in voices:
+            response += f".\n\nYour current voice is {voices[message.author.name]}."
+        else:
+            response += ".\n\nYour current voice is the default voice."
 
     elif lowered.startswith("!nick"):
         parts = user_message.split(" ")
