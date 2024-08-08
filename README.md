@@ -26,10 +26,13 @@ Reference the Coqui TTS documentation. At the time of writing this amounts to:
 ## Install
 ### 1. Setting up your .env file
 Copy the .env.sample file to .env or establish environment variables as it defines.
+BOT_ADMINS is colon delimited.
 
 ```
 DISCORD_TOKEN=Your-Token-Here
 URL_INSTALL=Your-Install-URL-Here
+TTS_MODEL=tts_models/multilingual/multi-dataset/xtts_v2
+BOT_ADMINS=YOUR:ADMIN:USERNAMES
 ```
 Setup your app and get your tokens and URL on discord.com here:
 

@@ -38,6 +38,7 @@ TOKEN: Final[str] = os.getenv("DISCORD_TOKEN")
 DEVICE: Final[str] = "cuda" if torch.cuda.is_available() else "cpu"
 tts: Final[TTS] = TTS(os.getenv("TTS_MODEL")).to(DEVICE)
 DEFAULT_VOICE: Final[str] = "deckard-cain.wav"
+BOT_ADMINS: Final[list[str]] = os.getenv("BOT_ADMINS").split(":")
 # advertise our install URL
 print(f"Install URL: {URL_INSTALL}")
 
@@ -181,7 +182,7 @@ def process_user_commands(message: Message, user_message: str) -> str:
     response = ""
 
     if lowered == "!help" or lowered == "!commands":
-        response = "Available commands:  !join, !nick, !dice, !coin, !8ball, !help, !commands, !url, !source"
+        response = "Available commands:  !join, !voice, !nick, !dice, !coin, !8ball, !help, !commands, !url, !source"
 
     elif lowered == "!source":
         response = "The source code for Sonic Blaster is available on GitHub: https://github.com/SiliconSorcerers/SonicBlaster"
@@ -236,10 +237,14 @@ def process_user_commands(message: Message, user_message: str) -> str:
 
             # list each file in the voices directory
             for file in os.listdir("voices"):
-                response += f"{file}, "
+                if not file.lower().endswith(".md"):
+                    response += f"{file}, "
 
             # remove the last comma
             response = response[:-2]
+
+            if message.author.name in voices:
+                response += f".\n\nYour current voice is {voices[message.author.name]}."
 
     elif lowered.startswith("!nick"):
         parts = user_message.split(" ")
@@ -285,6 +290,10 @@ def process_user_commands(message: Message, user_message: str) -> str:
                 "The path ahead is unclear",
             ]
         )
+
+    if message.author.name in BOT_ADMINS:
+        if lowered == "!quit":
+            sys.exit(0)
 
     return response
 
