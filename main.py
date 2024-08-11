@@ -14,7 +14,6 @@ from typing import Final
 from dotenv import load_dotenv
 from discord import Intents, Client, Message
 
-# from gtts import gTTS
 from TTS.api import TTS
 
 import io
@@ -52,6 +51,7 @@ voice_connections = {}
 nicknames = db.load_nicknames()
 voices = db.load_voices()
 voice_queues = {}
+last_spoke = {}
 
 
 # add our message parsing functionality
@@ -143,6 +143,10 @@ async def on_message(message: Message) -> None:
             # get the voice connection
             voice = voice_connections[message.guild]
             filtered_message = re.sub(r"<.*?>", "", user_message)
+
+            # Custom replacements/filtering
+            filtered_message = re.subn("lol", "hahaha", filtered_message)[0]
+
             tts_name = username
 
             if username in voices:
@@ -155,7 +159,13 @@ async def on_message(message: Message) -> None:
             else:
                 print(f"Username not found in nicknames: `{username}`")
 
-            tts_text = f"{tts_name} says {filtered_message}"
+            if message.guild in last_spoke:
+                if last_spoke[message.guild] == message.author:
+                    tts_text = filtered_message
+                else:
+                    tts_text = f"{tts_name} says {filtered_message}"
+            else:
+                tts_text = f"{tts_name} says {filtered_message}"
 
             # check if the tts text contains a link
             if "http" in tts_text.lower():
@@ -185,6 +195,8 @@ async def on_message(message: Message) -> None:
                     discord.FFmpegPCMAudio(audio_data, pipe=True),
                     after=lambda e: play_queue(message.guild),
                 )
+
+            last_spoke[message.guild] = message.author
 
 
 def play_queue(guild):
