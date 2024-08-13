@@ -23,6 +23,71 @@ print("Starting SonicBlaster...")
 print("Loading environment variables...")
 load_dotenv()
 
+
+def clean_discord_message(text: str) -> str:
+
+    # now that we have our filtered text let's check each token to see if it's an acronym
+    # that we need to expand
+    acronyms = {
+        "lol": "hahaha",
+        "lmao": "hahaha",
+        "rofl": "hahaha",
+        "omw": "on my way",
+        "afk": "away from keyboard",
+        "brb": "be right back",
+        "omg": "oh my god",
+        "wtf": "what the fuck!",
+        "idk": "I don't know",
+        "btw": "by the way",
+        "imo": "in my opinion",
+    }
+
+    # clean up the string we get from discord to make it easier to work with
+    # for our TTS bot
+    filtered_text = text
+
+    # remove any discord mentions
+    filtered_text = re.sub(r"<.*?>", "", filtered_text)
+
+    # replace all line breaks with spaces
+    filtered_text = filtered_text.replace("\n", " ")
+
+    # replace all excess whitespace with a single space and limit message to 50 words
+    filtered_text = " ".join(filtered_text.split()[:50])
+
+    text_out = []
+    text_in = filtered_text.split()
+
+    for word in text_in:
+
+        lowered = word.lower()
+
+        # remove all non alpha-numeric characters
+        lowered_non_alpha = re.sub(r"[^a-zA-Z0-9]", "", lowered)
+
+        if lowered_non_alpha in acronyms:
+            text_out.append(acronyms[lowered_non_alpha])
+        else:
+            if lowered.startswith("http"):
+                text_out.append(", link included,")
+
+            else:
+                # check if the word has more than 3 digits of numbers
+                if (
+                    any(char.isdigit() for char in word)
+                    and sum(char.isdigit() for char in word) >= 3
+                ):
+                    text_out.append(", big numbers,")
+
+                else:
+
+                    text_out.append(word)
+
+    filtered_text = " ".join(text_out)
+
+    return filtered_text
+
+
 # if our database doesn't exist, create it
 if not os.path.exists(db.PATH):
     print("CRITICAL ERROR: Database does not exist.")
@@ -142,10 +207,7 @@ async def on_message(message: Message) -> None:
         if message.guild in voice_connections:
             # get the voice connection
             voice = voice_connections[message.guild]
-            filtered_message = re.sub(r"<.*?>", "", user_message)
-
-            # Custom replacements/filtering
-            filtered_message = re.subn("lol", "hahaha", filtered_message)[0]
+            filtered_message = clean_discord_message(user_message)
 
             tts_name = username
 
