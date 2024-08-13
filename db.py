@@ -62,10 +62,12 @@ def create_db():
         pass
 
 
-def create_table(query: str) -> None:
+def create_table(table_name: str, table_creation_query: str) -> None:
     try:
         conn = sqlite3.connect(PATH)
-        conn.execute(query)
+        # attempt to delete the table first
+        conn.execute(f"DROP TABLE IF EXISTS {table_name}")
+        conn.execute(table_creation_query)
         conn.commit()
         conn.close()
     except Exception as e:
@@ -74,7 +76,28 @@ def create_table(query: str) -> None:
 
 
 def create_voices():
-    create_table("CREATE TABLE voices (username TEXT PRIMARY KEY, voice TEXT)")
+    create_table(
+        table_name="voices",
+        table_creation_query="""
+CREATE TABLE voices (username TEXT PRIMARY KEY, voice TEXT)
+        """,
+    )
+
+
+def create_voice_download_queue():
+    create_table(
+        table_name="voice_download_queue",
+        table_creation_query="""
+CREATE TABLE voice_download_queue (
+  id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+  requested_by_username TEXT,
+  requested_filename TEXT,
+  youtube_url TEXT,
+  processed INTEGER DEFAULT 0 CHECK(processed IN (0, 1))
+);
+
+                 """,
+    )
 
 
 def main():
@@ -86,7 +109,16 @@ def main():
         "-c", "--create-db", action="store_true", help="create an empty database"
     )
     parser.add_argument(
-        "-cv", "--create-voices", action="store_true", help="create voices table"
+        "-cv",
+        "--create-voices",
+        action="store_true",
+        help="create voices table",
+    )
+    parser.add_argument(
+        "-cd",
+        "--create-download",
+        action="store_true",
+        help="create voice_download_queue table",
     )
     parser.add_argument("-n", "--nicknames", action="store_true", help="list nicknames")
 
@@ -104,6 +136,10 @@ def main():
     if args.create_voices:
 
         create_voices()
+
+    if args.create_download:
+
+        create_voice_download_queue()
 
     if args.nicknames:
         print("Nicknames:")
